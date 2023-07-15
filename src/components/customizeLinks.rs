@@ -1,22 +1,8 @@
-use std::array;
-
+use actix_web::web;
 use leptos::*;
+use sqlx::Row;
 
-pub enum Platform {
-    GITHUB,
-    LINKEDIN,
-    YOUTUBE,
-}
-
-impl ToString for Platform {
-    fn to_string(&self) -> String {
-        match self {
-            Self::GITHUB => "Github".to_owned(),
-            Self::LINKEDIN => "LinkedIn".to_owned(),
-            Self::YOUTUBE => "Youtube".to_owned(),
-        }
-    }
-}
+use crate::models::{appState::AppState, link::Link, platform::Platform};
 
 #[component]
 pub fn Link(cx: Scope, platform: Platform, url: String, number: i8) -> impl IntoView {

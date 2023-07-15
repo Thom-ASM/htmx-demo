@@ -1,14 +1,42 @@
 mod components;
-
+mod models;
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
-
 use leptos::*;
+use sqlx::{postgres::PgPoolOptions, Row};
+
+extern crate dotenv;
+
+use dotenv::dotenv;
+use std::env;
 
 use components::{customizeLinks::CustomLinks, navbar::Nav, profile::Profile};
+use models::{appState::AppState, link::Link};
+
+use crate::models::platform::Platform;
 
 #[post("/links")]
-async fn links() -> HttpResponse {
-    let html = leptos::ssr::render_to_string(|cx| CustomLinks(cx));
+async fn links(data: web::Data<AppState>) -> HttpResponse {
+    let rows = sqlx::query("SELECT * FROM links")
+        .fetch_all(&data.db)
+        .await
+        .expect("Failed to fetch links");
+
+    let res = rows
+        .into_iter()
+        .map(|row| Link {
+            linkid: row.get("linkid"),
+            val: row.get("val"),
+            userid: row.get("userid"),
+            platform: Platform::GITHUB,
+        })
+        .collect::<Vec<Link>>();
+
+    println!("LINKS {:?}", res);
+
+    let html = leptos::ssr::render_to_string(|cx| {
+        view! {cx,
+        <CustomLinks/>}
+    });
 
     return HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
@@ -30,7 +58,7 @@ async fn css() -> impl Responder {
 }
 
 #[get("/")]
-async fn index() -> HttpResponse {
+async fn index(data: web::Data<AppState>) -> HttpResponse {
     let html = leptos::ssr::render_to_string(|cx| {
         view! {cx,
             <head>
@@ -48,7 +76,7 @@ async fn index() -> HttpResponse {
            "ASIDE"
            </section>
            <section id="mainContainer" class="w-full flex flex-col items-center">
-                <CustomLinks/>
+                <CustomLinks />
            </section>
            </main>
            </body>
@@ -62,8 +90,28 @@ async fn index() -> HttpResponse {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| {
+    dotenv().ok();
+
+    let database_url = env::var("DATABASE_URL").expect("Cannot find postgres URL");
+
+    let pool = match PgPoolOptions::new()
+        .max_connections(5)
+        .connect(&database_url)
+        .await
+    {
+        Ok(pool) => {
+            println!("Database initalised");
+            pool
+        }
+        Err(err) => {
+            println!("Failed to initialize Database {:?}", err);
+            std::process::exit(1);
+        }
+    };
+
+    HttpServer::new(move || {
         App::new()
+            .app_data(web::Data::new(AppState { db: pool.clone() }))
             .service(index)
             .service(css)
             .service(links)

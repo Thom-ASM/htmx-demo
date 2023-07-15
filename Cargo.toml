@@ -10,3 +10,6 @@ actix-web = "4"
 html-macro = "0.2.2"
 leptos = "0.4.3"
 actix-files = { version = "0.6" }
+sqlx = { version = "0.7", features = [ "postgres", "runtime-tokio" ] }
+dotenv = "0.15.0"
+serde = "1.0.171"
