@@ -9,7 +9,7 @@ pub fn Nav(cx: Scope) -> impl IntoView {
             <h1 class="text-4xl font-extrabold">"devlinks"</h1>
             </div>
             <div class="flex space-x-12">
-                <button hx-post="/links"
+                <button hx-get="/links"
                  hx-trigger="click"
                  hx-target="#mainContainer"
                  hx-swap="innerHTML"

@@ -5,7 +5,7 @@ use sqlx::Row;
 use crate::models::{appState::AppState, link::Link, platform::Platform};
 
 #[component]
-pub fn Link(cx: Scope, platform: Platform, url: String, number: i8) -> impl IntoView {
+pub fn LinkContainer(cx: Scope, platform: Platform, url: String, number: usize) -> impl IntoView {
     let opts = [Platform::GITHUB, Platform::LINKEDIN, Platform::YOUTUBE];
     return view! {cx,
        <li class="flex flex-col list-none space-y-5">
@@ -34,14 +34,34 @@ pub fn Link(cx: Scope, platform: Platform, url: String, number: i8) -> impl Into
 }
 
 #[component]
-pub fn CustomLinks(cx: Scope) -> impl IntoView {
+pub fn CustomLinks(cx: Scope, links: Vec<Link>) -> impl IntoView {
+    let links_to_render = links
+        .iter()
+        .enumerate()
+        .map(|(idx, link)| {
+            return view! {cx,
+                <LinkContainer number={idx} platform={Platform::GITHUB} url={link.val.to_string()}/>
+            };
+        })
+        .collect::<Vec<View>>();
+
+    let size = links.len();
+
     return view! {cx,
        <section class="flex flex-col space-y-8">
         <h2 class="text-4xl color-gray-600 text-bold">"Customise your links"</h2>
         <p class="text-md color-gray-300">"Add/Edit/Remove links below and then share all your profiles with the world"</p>
-        <button id="addLink" class="w-full ring-1 ring-purple-500 text-purple-500 rounded-md py-3 text-md"  >"+Add new link"</button>
+        <button  hx-post="/newLink"
+                 hx-trigger="click"
+                 hx-target="#mainContainer"
+                 hx-swap="innerHTML"
+                 hx-vals=format!("{{\"count\" : \"{}\" }}",size)
+                 id="addLink"
+                 class="w-full ring-1 ring-purple-500 text-purple-500 rounded-md py-3 text-md"  >"+Add new link"</button>
         <section id="links-container">
-        <Link platform=Platform::GITHUB url="TEST".to_string() number=1/>
+
+        {links_to_render}
+
         </section>
        </section>
     };

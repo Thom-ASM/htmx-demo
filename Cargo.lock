@@ -1149,6 +1149,7 @@ dependencies = [
  "leptos",
  "serde",
  "sqlx",
+ "uuid",
 ]
 
 [[package]]

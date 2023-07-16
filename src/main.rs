@@ -1,47 +1,18 @@
 mod components;
+mod handlers;
 mod models;
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use handlers::links::{links, newLinks};
 use leptos::*;
-use sqlx::{postgres::PgPoolOptions, Row};
+use sqlx::postgres::PgPoolOptions;
 
 extern crate dotenv;
 
 use dotenv::dotenv;
 use std::env;
 
-use components::{customizeLinks::CustomLinks, navbar::Nav, profile::Profile};
-use models::{appState::AppState, link::Link};
-
-use crate::models::platform::Platform;
-
-#[post("/links")]
-async fn links(data: web::Data<AppState>) -> HttpResponse {
-    let rows = sqlx::query("SELECT * FROM links")
-        .fetch_all(&data.db)
-        .await
-        .expect("Failed to fetch links");
-
-    let res = rows
-        .into_iter()
-        .map(|row| Link {
-            linkid: row.get("linkid"),
-            val: row.get("val"),
-            userid: row.get("userid"),
-            platform: Platform::GITHUB,
-        })
-        .collect::<Vec<Link>>();
-
-    println!("LINKS {:?}", res);
-
-    let html = leptos::ssr::render_to_string(|cx| {
-        view! {cx,
-        <CustomLinks/>}
-    });
-
-    return HttpResponse::Ok()
-        .content_type("text/html; charset=utf-8")
-        .body(html);
-}
+use components::{navbar::Nav, profile::Profile};
+use models::appState::AppState;
 
 #[post("/profile")]
 async fn profile() -> HttpResponse {
@@ -76,7 +47,6 @@ async fn index(data: web::Data<AppState>) -> HttpResponse {
            "ASIDE"
            </section>
            <section id="mainContainer" class="w-full flex flex-col items-center">
-                <CustomLinks />
            </section>
            </main>
            </body>
@@ -116,6 +86,7 @@ async fn main() -> std::io::Result<()> {
             .service(css)
             .service(links)
             .service(profile)
+            .service(newLinks)
     })
     .bind(("127.0.0.1", 8080))?
     .run()
