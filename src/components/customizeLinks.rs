@@ -1,17 +1,23 @@
 use actix_web::web;
-use leptos::*;
+use leptos::{ev::formdata, *};
 use sqlx::Row;
 
 use crate::models::{appState::AppState, link::Link, platform::Platform};
 
 #[component]
-pub fn LinkContainer(cx: Scope, platform: Platform, url: String, number: usize) -> impl IntoView {
+pub fn LinkContainer(
+    cx: Scope,
+    platform: Platform,
+    url: String,
+    number: usize,
+    id: String,
+) -> impl IntoView {
     let opts = [Platform::GITHUB, Platform::LINKEDIN, Platform::YOUTUBE];
     return view! {cx,
-       <li class="flex flex-col list-none space-y-5">
+       <li class="flex flex-col list-none space-y-5" hx-vals=format!("{{\"test\" : \"{}\" }}",url)>
        <section class="flex flex-row justify-between">
         <h3>"Link #"{number}</h3>
-        <button>"Remove"</button>
+        <button hx-vals=format!("{{\"id\":\"{}\"}}",url)>"Remove"</button>
        </section>
        <section class="flex flex-col space-y-2">
        <label for="platform">"Platform"</label>
@@ -40,12 +46,14 @@ pub fn CustomLinks(cx: Scope, links: Vec<Link>) -> impl IntoView {
         .enumerate()
         .map(|(idx, link)| {
             return view! {cx,
-                <LinkContainer number={idx} platform={Platform::GITHUB} url={link.val.to_string()}/>
+                <LinkContainer number={idx} platform={link.platform.clone()} url={link.val.to_string()} id={link.linkid.clone()}/>
             };
         })
         .collect::<Vec<View>>();
 
-    let size = links.len();
+    let formData = serde_json::to_string(&links)
+        .expect("Failed to serialize the form data")
+        .replace("\"", "'");
 
     return view! {cx,
        <section class="flex flex-col space-y-8">
@@ -55,7 +63,7 @@ pub fn CustomLinks(cx: Scope, links: Vec<Link>) -> impl IntoView {
                  hx-trigger="click"
                  hx-target="#mainContainer"
                  hx-swap="innerHTML"
-                 hx-vals=format!("{{\"count\" : \"{}\" }}",size)
+                 hx-vals=format!("{{\"data\": \"{}\" }}",formData)
                  id="addLink"
                  class="w-full ring-1 ring-purple-500 text-purple-500 rounded-md py-3 text-md"  >"+Add new link"</button>
         <section id="links-container">
