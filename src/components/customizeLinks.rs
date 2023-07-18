@@ -40,7 +40,7 @@ pub fn LinkContainer(
 }
 
 #[component]
-pub fn CustomLinks(cx: Scope, links: Vec<Link>) -> impl IntoView {
+pub fn CustomLinks(cx: Scope, links: Vec<Link>, errorMessage: Option<String>) -> impl IntoView {
     let links_to_render = links
         .iter()
         .enumerate()
@@ -51,19 +51,20 @@ pub fn CustomLinks(cx: Scope, links: Vec<Link>) -> impl IntoView {
         })
         .collect::<Vec<View>>();
 
-    let formData = serde_json::to_string(&links)
-        .expect("Failed to serialize the form data")
-        .replace("\"", "'");
+    let displayError = match errorMessage.clone() {
+        Some(_) => "color-red-500",
+        None => "hidden",
+    };
 
     return view! {cx,
        <section class="flex flex-col space-y-8">
         <h2 class="text-4xl color-gray-600 text-bold">"Customise your links"</h2>
         <p class="text-md color-gray-300">"Add/Edit/Remove links below and then share all your profiles with the world"</p>
+        <p class=format!("{}",displayError)>{errorMessage.or_else(||Some("".to_string()))}</p>
         <button  hx-post="/newLink"
                  hx-trigger="click"
                  hx-target="#mainContainer"
                  hx-swap="innerHTML"
-                 hx-vals=format!("{{\"data\": \"{}\" }}",formData)
                  id="addLink"
                  class="w-full ring-1 ring-purple-500 text-purple-500 rounded-md py-3 text-md"  >"+Add new link"</button>
         <section id="links-container">
