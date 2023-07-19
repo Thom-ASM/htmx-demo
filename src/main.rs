@@ -63,11 +63,11 @@ async fn index(data: web::Data<AppState>) -> HttpResponse {
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
 
-    let database_url = env::var("DATABASE_URL").expect("Cannot find postgres URL");
+    // let database_url = env::var("DATABASE_URL").expect("Cannot find postgres URL");
 
     let pool = match PgPoolOptions::new()
         .max_connections(5)
-        .connect(&database_url)
+        .connect("postgresql://localhost/postgres?user=postgres&password=postgres")
         .await
     {
         Ok(pool) => {
