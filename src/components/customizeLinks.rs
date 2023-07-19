@@ -14,10 +14,16 @@ pub fn LinkContainer(
 ) -> impl IntoView {
     let opts = [Platform::GITHUB, Platform::LINKEDIN, Platform::YOUTUBE];
     return view! {cx,
-       <li class="flex flex-col list-none space-y-5" hx-vals=format!("{{\"test\" : \"{}\" }}",url)>
+       <li class="flex flex-col list-none space-y-5">
        <section class="flex flex-row justify-between">
         <h3>"Link #"{number}</h3>
-        <button hx-vals=format!("{{\"id\":\"{}\"}}",url)>"Remove"</button>
+        <button
+            hx-delete="/removeLink"
+            hx-trigger="click"
+            hx-target="#mainContainer"
+            hx-swap="innerHTML"
+
+        hx-vals=format!("{{\"id\":\"{}\"}}",id)>"Remove"</button>
        </section>
        <section class="flex flex-col space-y-2">
        <label for="platform">"Platform"</label>

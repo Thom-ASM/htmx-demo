@@ -3,7 +3,7 @@ mod db;
 mod handlers;
 mod models;
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
-use handlers::links::{links, newLinks};
+use handlers::links::{links, newLinks, removeLink};
 use leptos::*;
 use sqlx::postgres::PgPoolOptions;
 
@@ -88,6 +88,7 @@ async fn main() -> std::io::Result<()> {
             .service(links)
             .service(profile)
             .service(newLinks)
+            .service(removeLink)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

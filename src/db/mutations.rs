@@ -17,3 +17,12 @@ pub fn insert_new_link<'a>(userId: String) -> QueryT<'a> {
     .bind(userId)
     .bind(false);
 }
+
+pub fn delete_link_by_id<'a>(linkId: String) -> QueryT<'a> {
+    return sqlx::query(
+        "DELETE FROM links
+        WHERE linkid = $1
+    ",
+    )
+    .bind(linkId);
+}
